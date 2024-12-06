@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { BskyAgent } from '@atproto/api'
+import { BskyAgent, AppBskyFeedDefs } from '@atproto/api'
 
 const agent = new BskyAgent({ service: 'https://bsky.social' })
 
@@ -21,9 +21,9 @@ export async function GET(
       agent.getAuthorFeed({ actor: did, limit: 20 })
     ])
 
-    const recentPosts = feed.data.feed.map(post => ({
+    const recentPosts = feed.data.feed.map((post: AppBskyFeedDefs.FeedViewPost) => ({
       uri: post.post.uri,
-      text: post.post.record.text,
+      text: (post.post.record as AppBskyFeedDefs.PostView).text,
       likeCount: post.post.likeCount || 0,
       replyCount: post.post.replyCount || 0,
       repostCount: post.post.repostCount || 0,
@@ -47,7 +47,7 @@ export async function GET(
       avgLikes,
       avgReposts,
       avgReplies,
-      engagementRate: Number(((avgLikes + avgReposts + avgReplies) / profile.data.followersCount * 100).toFixed(2)),
+      engagementRate: Number(((avgLikes + avgReposts + avgReplies) / (profile.data.followersCount ?? 1) * 100).toFixed(2)),
       topInterests: getTopInterests(recentPosts),
       postsPerWeek: getPostingFrequency(recentPosts),
       isActive: isActiveUser(recentPosts)

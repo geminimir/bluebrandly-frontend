@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { BskyAgent } from '@atproto/api'
+import { BskyAgent, AppBskyFeedDefs } from '@atproto/api'
 
 const agent = new BskyAgent({ service: 'https://bsky.social' })
 
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
               return sum + likes + (replies * 2) + (reposts * 1.5)
             }, 0)
             // Calculate average engagement per post as percentage
-            return Number((totalEngagement / recentPosts.length / profile.data.followersCount * 100).toFixed(2))
+            return Number((totalEngagement / recentPosts.length / (profile.data.followersCount ?? 1) * 100).toFixed(2))
           })()
 
           // Calculate posting frequency (posts per week)
@@ -98,7 +98,7 @@ export async function GET(request: Request) {
             engagementRate,
             postsPerWeek,
             recentPosts: recentPosts.map(post => ({
-              text: post.post.record.text,
+              text: (post.post.record as AppBskyFeedDefs.PostView).text,
               likeCount: post.post.likeCount || 0,
               replyCount: post.post.replyCount || 0,
               repostCount: post.post.repostCount || 0,
